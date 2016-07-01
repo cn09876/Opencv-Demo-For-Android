@@ -1,6 +1,9 @@
 package t1.opencv.sw.toc1;
 
 import android.app.Activity;
+import android.content.Context;
+import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -25,6 +28,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.facebook.drawee.view.SimpleDraweeView;
+
 public class frmMain extends Activity implements CvCameraViewListener
 {
     private static final String  TAG = "sss";
@@ -32,48 +37,44 @@ public class frmMain extends Activity implements CvCameraViewListener
     int h=0;
     Mat img;
     Button btn1;
+    UdpHelper u;
 
     private CameraBridgeViewBase mOpenCvCameraView;
-
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                } break;
-            }
-        }
-    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        WifiManager manager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        u=new UdpHelper(manager);
+        new Thread(u).start();
+
         setContentView(R.layout.lay_frm_main);
         btn1=(Button)findViewById(R.id.button1);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                udp_send("<send>1234567890abcd</send>");
                 Toast.makeText(frmMain.this, "嘎嘎!", Toast.LENGTH_SHORT).show();
             }
         });
 
         Log.d(TAG, "Creating and setting view");
         //mOpenCvCameraView = (CameraBridgeViewBase) new JavaCameraView(this, -1);
-        mOpenCvCameraView=(JavaCameraView)findViewById(R.id.opencv_view);
         //setContentView(mOpenCvCameraView);
+
+        mOpenCvCameraView=(JavaCameraView)findViewById(R.id.opencv_view);
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+    }
+
+    void udp_send(String s)
+    {
+        u.send(s);
     }
 
     @Override
@@ -81,7 +82,9 @@ public class frmMain extends Activity implements CvCameraViewListener
     {
         super.onPause();
         if (mOpenCvCameraView != null)
+        {
             mOpenCvCameraView.disableView();
+        }
     }
 
     @Override
@@ -89,17 +92,20 @@ public class frmMain extends Activity implements CvCameraViewListener
     {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            Toast.makeText(this, "opencv lib not loaded", Toast.LENGTH_LONG).show();
         } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+            Log.e(TAG, "OpenCV library found inside package. Using it!");
+            mOpenCvCameraView.enableView();
         }
     }
 
     public void onDestroy() {
         super.onDestroy();
         if (mOpenCvCameraView != null)
+        {
             mOpenCvCameraView.disableView();
+        }
+
     }
 
 
