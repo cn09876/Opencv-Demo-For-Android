@@ -21,12 +21,14 @@ public class UdpHelper implements Runnable
         this.lock= manager.createMulticastLock("UDPwifi");
     }
 
-    public void StartListen()  {
+    public void StartListen()
+    {
         // UDP服务器监听的端口
         Integer port = 20421;
         // 接收的字节大小，客户端发送的数据不能超过这个大小
         byte[] message = new byte[100];
-        try {
+        try
+        {
             // 建立Socket连接
             DatagramSocket datagramSocket = new DatagramSocket(port);
             datagramSocket.setBroadcast(true);

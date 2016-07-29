@@ -295,6 +295,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
             mCamera.addCallbackBuffer(mBuffer);
     }
 
+
     private class JavaCameraFrame implements CvCameraViewFrame {
         @Override
         public Mat gray() {
